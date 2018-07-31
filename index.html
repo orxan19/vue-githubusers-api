@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.13.1/lodash.min.js"></script>
+</head>
+<body>
+
+
+<div id="app">
+
+    <div style="width: 500px;">
+        Задайте вопрос, на который можно ответить "да" или "нет":
+        <input type="text" class="form-control" v-model="question">
+    </div>
+
+    <p>{{ answer }}</p>
+</div>
+
+<script>
+    var app = new Vue({
+        el:"#app",
+        data: {
+            question: '',
+            answer: 'Пока вы не зададите вопрос, я не могу ответить!'
+        },
+        watch: {
+            question: function(newQuestion, oldQuestion){
+                this.answer = 'Ожидаю, когда вы закончите печатать...';
+                this.debouncedAnswer()
+            }
+        },
+        created: function () {
+
+            this.debouncedAnswer = _.debounce(this.getAnswer, 500);
+        },
+        methods:{
+            getAnswer: function(){
+
+                if(this.question.indexOf('?') == -1){
+                    this.answer = 'Вопросы обычно заканчиваются вопросительным знаком. ;-)';
+                    return
+                }
+
+                this.answer = 'Думаю..';
+                var vm = this
+                axios.get('https://yesno.wtf/api')
+                    .then(function(response){
+                       vm.answer = _.capitalize(response.data.answer)
+                    })
+                    .catch(function(error){
+                        vm.answer = error
+                    })
+
+            }
+        }
+    });
+</script>
+</body>
+</html>
